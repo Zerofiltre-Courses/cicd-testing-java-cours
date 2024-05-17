@@ -54,7 +54,7 @@ public class Calculator {
 		return a * fact(a - 1);
 	}
 
-	public void longCalculation() {
+		public void longCalculation() {
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {

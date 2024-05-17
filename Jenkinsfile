@@ -21,6 +21,7 @@ node {
 
             sh "mvn clean install"
         }
+       
 
         stage('Sonarqube Analysis') {
             withSonarQubeEnv('localhost_sonarqube') {
