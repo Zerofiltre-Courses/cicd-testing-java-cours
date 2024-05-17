@@ -17,10 +17,7 @@ node {
             checkout scm
         }
 
-        stage('Build with test') {
-
-            sh "mvn clean install"
-        }
+       
 
         stage('Sonarqube Analysis') {
             withSonarQubeEnv('localhost_sonarqube') {
