@@ -54,13 +54,15 @@ public class Calculator {
 		return a * fact(a - 1);
 	}
 
-	public void longCalculation() {
+		public void longCalculation() {
 		try {
 			Thread.sleep(500);
-		} catch (final InterruptedException e) {
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt(); // Réinterruption
 			logger.debug("Thread has been interrupted", e);
 		}
 	}
+
 
 	public Set<Integer> digitsSet(int number) {
 		final Set<Integer> integers = new HashSet<>();

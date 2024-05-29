@@ -1,15 +1,15 @@
-def CONTAINER_NAME = "calculator"
 def ENV_NAME = getEnvName(env.BRANCH_NAME)
+def CONTAINER_NAME = "calculator-" +ENV_NAME
 def CONTAINER_TAG = getTag(env.BUILD_NUMBER, env.BRANCH_NAME)
 def HTTP_PORT = getHTTPPort(env.BRANCH_NAME)
-def EMAIL_RECIPIENTS = "philippe.guemkamsimo@gmail.com"
+def EMAIL_RECIPIENTS = "nesrine.dridi@esprit.tn"
 
 
 node {
     try {
         stage('Initialize') {
-            def dockerHome = tool 'DockerLatest'
-            def mavenHome = tool 'MavenLatest'
+            def dockerHome = tool 'dockerlatest'
+            def mavenHome = tool 'mavenlatest'
             env.PATH = "${dockerHome}/bin:${mavenHome}/bin:${env.PATH}"
         }
 
@@ -21,9 +21,10 @@ node {
 
             sh "mvn clean install"
         }
+       
 
         stage('Sonarqube Analysis') {
-            withSonarQubeEnv('SonarQubeLocalServer') {
+            withSonarQubeEnv('localhost_sonarqube') {
                 sh " mvn sonar:sonar -Dintegration-tests.skip=true -Dmaven.test.failure.ignore=true"
             }
             timeout(time: 1, unit: 'MINUTES') {
@@ -43,13 +44,13 @@ node {
         }
 
         stage('Push to Docker Registry') {
-            withCredentials([usernamePassword(credentialsId: 'DockerhubCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'dockerhubcredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 pushToImage(CONTAINER_NAME, CONTAINER_TAG, USERNAME, PASSWORD)
             }
         }
 
         stage('Run App') {
-            withCredentials([usernamePassword(credentialsId: 'DockerhubCredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            withCredentials([usernamePassword(credentialsId: 'dockerhubcredentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                 runApp(CONTAINER_NAME, CONTAINER_TAG, USERNAME, HTTP_PORT, ENV_NAME)
 
             }
@@ -96,22 +97,22 @@ def sendEmail(recipients) {
 }
 
 String getEnvName(String branchName) {
-    if (branchName == 'main') {
+    if (branchName == 'master') {
         return 'prod'
     }
     return (branchName == 'develop') ? 'uat' : 'dev'
 }
 
 String getHTTPPort(String branchName) {
-    if (branchName == 'main') {
+    if (branchName == 'master') {
         return '9003'
     }
     return (branchName == 'develop') ? '9002' : '9001'
 }
 
 String getTag(String buildNumber, String branchName) {
-    if (branchName == 'main') {
-        return buildNumber + '-unstable'
+    if (branchName == 'master') {
+        return buildNumber + '-stable'
     }
-    return buildNumber + '-stable'
+    return buildNumber + '-unstable'
 }
